@@ -1,34 +1,88 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import './App.css'
+import { useEffect, useState } from 'react';
+import Accordion from '@mui/material/Accordion';
+import AccordionSummary from '@mui/material/AccordionSummary';
+import AccordionDetails from '@mui/material/AccordionDetails';
+import Typography from '@mui/material/Typography';
+import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
+import * as C from './App.styles';
+import { ListItem } from './components/ListItem';
+import { AddArea } from './components/AddItem/addItem'
+import api from './services/api';
 
-function App() {
-  const [count, setCount] = useState(0)
+const App = () => {
+
+  const [list, setList] = useState([]);
+
+  const handleAddTask = (description: string) => {
+    const data = {
+      description: description,
+      category: "1",
+      completed: false,
+      favorited: false,
+    };
+    api.post("tasks", data).then(res => { console.log(res.data) }).catch(e => { console.log(e) })
+
+  }
+
+  const handleTaskChange = (id: string, description: string, completed: boolean, favorited: boolean) => {
+    const data = {
+      description,
+      completed,
+      favorited
+    }
+    api.put("tasks/" + id, data).then(res => { console.log(res.data) }).catch(e => { console.log(e) })
+  }
+
+  useEffect(() => {
+    api.get("tasks").then(({ data }) => {
+      setList(data);
+    })
+  }, [handleAddTask]);
 
   return (
-    <div className="App">
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src="/vite.svg" className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://reactjs.org" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </div>
+    <C.Container>
+      <C.Area>
+        <C.Header>Lista de Tarefas</C.Header>
+
+        <AddArea onEnter={handleAddTask} />
+
+        {list
+          .filter(item => item.completed === false)
+          .map((item, index) => (
+            <ListItem
+              key={index}
+              item={item}
+              onChange={handleTaskChange}
+            ></ListItem>
+
+          ))}
+
+        <Accordion>
+          <AccordionSummary
+            expandIcon={<ExpandMoreIcon />}
+            aria-controls="panel1a-content"
+            id="panel1a-header"
+          >
+            <Typography>Concluídas</Typography>
+          </AccordionSummary>
+          <AccordionDetails>
+            <Typography component={'span'} variant={'body2'}>
+              {list
+                .filter(item => item.completed === true)
+                .map((item, index) => (
+                  <ListItem
+                    key={index}
+                    item={item}
+                    onChange={handleTaskChange}
+                  ></ListItem>
+
+                ))}
+            </Typography>
+          </AccordionDetails>
+        </Accordion>
+      </C.Area>
+    </C.Container>
   )
 }
 
-export default App
+export default App;
