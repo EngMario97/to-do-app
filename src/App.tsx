@@ -6,12 +6,13 @@ import Typography from '@mui/material/Typography';
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore';
 import * as C from './App.styles';
 import { ListItem } from './components/ListItem';
-import { AddArea } from './components/AddItem/addItem'
+import { AddArea } from './components/AddItem'
 import api from './services/api';
 
 const App = () => {
 
   const [list, setList] = useState([]);
+  const [count, setCount] = useState(0);
 
   const handleAddTask = (description: string) => {
     const data = {
@@ -21,7 +22,6 @@ const App = () => {
       favorited: false,
     };
     api.post("tasks", data).then(res => { console.log(res.data) }).catch(e => { console.log(e) })
-
   }
 
   const handleTaskChange = (id: string, description: string, completed: boolean, favorited: boolean) => {
@@ -37,6 +37,7 @@ const App = () => {
     api.get("tasks").then(({ data }) => {
       setList(data);
     })
+    setCount(list.filter(item => item.completed === true).length);
   }, [handleAddTask]);
 
   return (
@@ -63,7 +64,7 @@ const App = () => {
             aria-controls="panel1a-content"
             id="panel1a-header"
           >
-            <Typography>Concluídas</Typography>
+            <Typography>Concluídas ({count})</Typography>
           </AccordionSummary>
           <AccordionDetails>
             <Typography component={'span'} variant={'body2'}>
@@ -75,8 +76,8 @@ const App = () => {
                     item={item}
                     onChange={handleTaskChange}
                   ></ListItem>
-
-                ))}
+                ))
+              }
             </Typography>
           </AccordionDetails>
         </Accordion>
